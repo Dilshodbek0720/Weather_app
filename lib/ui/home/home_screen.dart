@@ -16,11 +16,12 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  String query = "Samarqand";
-  List<String> cities = ["Tashkent", "Payariq"];
-
+  String query = "";
+  List<String> cities = ["Toshkent", "Samarqand"];
   final TextEditingController _cityController = TextEditingController();
 
+  double lat = 0;
+  double long = 0;
   @override
   void initState() {
     super.initState();
@@ -40,7 +41,58 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               IconButton(
                   onPressed: () {
-
+                    showModalBottomSheet(context: context, builder: (context){
+                      return SingleChildScrollView(
+                        controller: ScrollController(),
+                        child: Container(
+                          height: size.height * .5,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          child: Column(
+                            children: [
+                              SizedBox(height: 20,),
+                              TextField(
+                                onSubmitted: (searchText) async{
+                                  setState(() async{
+                                    query = searchText;
+                                    UniversalData data = await ApiProvider.getMainWeatherDataByQuery(query: searchText);
+                                    WeatherMainModel model = data.data;
+                                    lat = model.coordModel.lat;
+                                    long = model.coordModel.lon;
+                                  });
+                                },
+                                controller: _cityController,
+                                autofocus: true,
+                                decoration: InputDecoration(
+                                    prefixIcon: const Icon(
+                                      Icons.search,
+                                    ),
+                                    suffixIcon: GestureDetector(
+                                      onTap: () =>
+                                          _cityController
+                                              .clear(),
+                                      child: Icon(
+                                        Icons.close,
+                                      ),
+                                    ),
+                                    hintText:
+                                    'Search city e.g. London',
+                                    focusedBorder:
+                                    OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                      ),
+                                      borderRadius:
+                                      BorderRadius.circular(
+                                          10),
+                                    )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    });
                   },
                   icon: const Icon(
                     Icons.search,
@@ -57,7 +109,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           return DropdownMenuItem(
                               value: location, child: Text(location));
                         }).toList(),
-                        onChanged: (String? newValue) {}),
+                        onChanged: (String? newValue)async{
+                          setState(() {
+                            query = newValue!;
+                          });
+                          UniversalData data = await ApiProvider.getMainWeatherDataByQuery(query: newValue!);
+                          WeatherMainModel model = data.data;
+                          lat = model.coordModel.lat;
+                          long = model.coordModel.lon;
+                        },),
                   )
                 ],
               )
@@ -66,7 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       body: FutureBuilder<UniversalData>(
-        future: ApiProvider.getMainWeatherDataByQuery(query: "Samarqand"),
+        future: query.isEmpty ? ApiProvider.getMainWeatherDataByLatLong(lat: widget.latLong.lat, long: widget.latLong.long) :
+        ApiProvider.getMainWeatherDataByQuery(query: query),
         builder: (BuildContext context, AsyncSnapshot<UniversalData> snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
@@ -127,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             top: -90,
                             left: 0,
                             child: Image.network(
-                              "https://openweathermap.org/img/wn/02d@4x.png",
+                              "https://openweathermap.org/img/wn/${weatherMainModel.weatherModel[0].icon}@4x.png",
                               fit: BoxFit.cover,
                               width: 240,
                             ),
@@ -136,8 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             bottom: 30,
                             left: 20,
                             child: Text(
-                              weatherMainModel.weatherModel[0].description
-                                  .toString(),
+                              weatherMainModel.weatherModel[0].description.toString(),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 30,
@@ -145,8 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           Positioned(
-                            top: 20,
-                            right: 20,
+                            top: 20, right: 20,
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -240,8 +299,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       height: 20,
                     ),
                     FutureBuilder<UniversalData>(
-                      future: ApiProvider.getWeatherOneCallData(
-                          lat: widget.latLong.lat, long: widget.latLong.long),
+                      future: query.isEmpty ? ApiProvider.getWeatherOneCallData(
+                          lat: widget.latLong.lat, long: widget.latLong.long) :
+                      ApiProvider.getWeatherOneCallData(lat: lat, long: long),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -256,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 20),
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: 10,
+                                  itemCount: 24,
                                   itemBuilder:
                                       (BuildContext context, int index) {
 // String today = DateTime.now().toString().substring(0, 10);
@@ -279,7 +339,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       },
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(
-                                            vertical: 20),
+                                            vertical: 15),
                                         margin: const EdgeInsets.only(
                                             right: 20, bottom: 20, top: 10),
                                         width: 80,
@@ -321,9 +381,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                               ),
                                             ),
                                             Image.network(
-                                              "https://openweathermap.org/img/wn/02d@4x.png",
+                                              "https://openweathermap.org/img/wn/${oneCallData.hourly[index].weather[0].icon}@4x.png",
                                               fit: BoxFit.cover,
-                                              width: 38,
+                                              width: 45,
                                             ),
                                             Text(
                                               MyUtils.getDateTime(oneCallData
