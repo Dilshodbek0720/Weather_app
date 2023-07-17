@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
 import 'package:n8_default_project/data/models/main/lat_lon.dart';
-import 'package:n8_default_project/ui/home/home_screen.dart';
+import 'package:n8_default_project/data/models/main/weather_main_model.dart';
+import 'package:n8_default_project/ui/weather_main/weather_main_screen.dart';
 import 'package:n8_default_project/utils/icons.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -54,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (context.mounted) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
-        return HomeScreen(
+        return WeatherMainScreen(
           latLong: latLong!,
         );
       }));

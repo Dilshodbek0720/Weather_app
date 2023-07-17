@@ -19,6 +19,7 @@ dependencies:
   flutter_screenutil: ^5.8.4
   http: ^1.1.0
   location: ^5.0.0
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

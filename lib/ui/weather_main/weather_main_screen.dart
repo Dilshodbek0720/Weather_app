@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:n8_default_project/data/models/detail/daily_item/daily_item.dart';
 import 'package:n8_default_project/data/models/detail/one_call_data.dart';
 import 'package:n8_default_project/data/models/main/lat_lon.dart';
 import 'package:n8_default_project/data/models/main/weather_main_model.dart';
 import 'package:n8_default_project/data/models/universal_data.dart';
 import 'package:n8_default_project/data/network/api_provider.dart';
-import 'package:n8_default_project/ui/home/widgets/weather_product.dart';
+import 'package:n8_default_project/ui/weather_daily/widgets/weather_daily_screen.dart';
+import 'package:n8_default_project/ui/weather_main/widgets/weather_product.dart';
 import 'package:n8_default_project/utils/colors.dart';
 import 'package:n8_default_project/utils/my_utils.dart';
 
-class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key, required this.latLong}) : super(key: key);
+class WeatherMainScreen extends StatefulWidget {
+  const WeatherMainScreen({Key? key, required this.latLong}) : super(key: key);
   final LatLong latLong;
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<WeatherMainScreen> createState() => _WeatherMainScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _WeatherMainScreenState extends State<WeatherMainScreen> {
   String query = "";
   List<String> cities = ["Toshkent", "Samarqand"];
   final TextEditingController _cityController = TextEditingController();
+  List<DailyItem> daily = [];
 
   double lat = 0;
   double long = 0;
@@ -156,7 +160,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Text(
-                        "Today ${MyUtils.getDateTime(weatherMainModel.dateTime).toString().substring(0, 10)}",
+          DateFormat('EEEE, d MMMM').format(MyUtils.getDateTime(weatherMainModel.dateTime)).toString(),
                         style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 16.0,
@@ -272,7 +276,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(
                       height: 20,
                     ),
-                    const Padding(
+                    Padding(
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -285,12 +289,22 @@ class _HomeScreenState extends State<HomeScreen> {
                               fontSize: 24,
                             ),
                           ),
-                          Text(
-                            "Next 7 days",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xff90B2F9)),
+                          GestureDetector(
+                            onTap: () async{
+                              UniversalData data = await ApiProvider.getWeatherOneCallData(lat: lat, long: long);
+                              OneCallData model = data.data;
+                              daily = model.daily;
+                              Navigator.push(context, MaterialPageRoute(builder: (context){
+                                return WeatherDailyScreen(daily: daily, title: query,);
+                              }));
+                            },
+                            child: Text(
+                              "Next 7 days",
+                              style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xff90B2F9)),
+                            ),
                           )
                         ],
                       ),
@@ -319,20 +333,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                   itemCount: 24,
                                   itemBuilder:
                                       (BuildContext context, int index) {
-// String today = DateTime.now().toString().substring(0, 10);
-// var selectedDay =
-// consolidatedWeatherList[index]['applicable_date'];
-// var futureWeatherName =
-// consolidatedWeatherList[index]['weather_state_name'];
-// var weatherUrl =
-// futureWeatherName.replaceAll(' ', '').toLowerCase();
-//
-// var parsedDate = DateTime.parse(
-//     consolidatedWeatherList[index]['applicable_date']);
-// var newDate = DateFormat('EEEE')
-//     .format(parsedDate)
-//     .substring(0, 3); //formateed date
-
                                     return GestureDetector(
                                       onTap: () {
 // Navigator.push(context, MaterialPageRoute(builder: (context) => DetailPage(consolidatedWeatherList: consolidatedWeatherList, selectedId: index, location: location,)));

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:n8_default_project/ui/home/home_screen.dart';
 import 'package:n8_default_project/ui/splash/splash_screen.dart';
 
 void main() {
